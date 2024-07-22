@@ -32,7 +32,6 @@ export default function App() {
 
   const onPressArrow = () => {
     setIsOpened(!isOpened);
-    console.log("깃 성공!");
   };
 
   const ItemSeparatorComponent = () => <Margin height={13} />;
