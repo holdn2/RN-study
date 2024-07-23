@@ -62,11 +62,15 @@ export default () => {
   return (
     <View style={{ flex: 1, width: 300, justifyContent: "center" }}>
       {/* test용 */}
-      <Text>input: {input}</Text>
-      <Text>currentOperator: {currentOperator}</Text>
-      <Text>result: {result}</Text>
-      <Text>tempInput: {tempInput}</Text>
-      <Text>tempOperator: {tempOperator}</Text>
+      {__DEV__ && (
+        <>
+          <Text>input: {input}</Text>
+          <Text>currentOperator: {currentOperator}</Text>
+          <Text>result: {result}</Text>
+          <Text>tempInput: {tempInput}</Text>
+          <Text>tempOperator: {tempOperator}</Text>
+        </>
+      )}
 
       {/* 결과 */}
       <View
