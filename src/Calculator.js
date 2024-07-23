@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, Text } from "react-native";
-import { useState } from "react";
+import { useCalculator } from "./useCalculator";
 // import styled from "styled-components-native";
 
 const COLOR = {
@@ -46,55 +46,18 @@ const Button = ({ text, onPress, flex, type, isSelected }) => {
 };
 
 export default () => {
-  const [input, setInput] = useState(0); // 12 => 14
-  const [currentOperator, setCurrentOperator] = useState(null); // +
-  const [result, setResult] = useState(null); // 12 => 14
-  const [tempInput, setTempInput] = useState(null); // 2
-  const [tempOperator, setTempOperator] = useState(null); // +
-  const onPressNum = (num) => {
-    if (currentOperator) {
-      setResult(input);
-      setInput(num);
-    } else {
-      const newInput = Number(`${input}${num}`);
-      setInput(newInput);
-    }
-  };
-  const onPressOperator = (operator) => {
-    if (operator !== "=") {
-      // = 가 아닐 경우
-      setCurrentOperator(operator);
-    } else {
-      let finalResult = result;
-      // = 일 경우
-      switch (currentOperator) {
-        case "+":
-          finalResult = result + input;
-          break;
-        case "-":
-          finalResult = result - input;
-          break;
-        case "*":
-          finalResult = result * input;
-          break;
-        case "/":
-          finalResult = result / input;
-          break;
-        default:
-          break;
-      }
-      setResult(finalResult);
-      setInput(finalResult);
-    }
-  };
-
-  const onPressReset = () => {
-    setInput(0);
-    setCurrentOperator(null);
-    setResult(null);
-    setTempInput(null);
-    setTempOperator(null);
-  };
+  const {
+    //custom hook 사용해서 UI부분 코드 줄이기
+    input,
+    currentOperator,
+    result,
+    tempInput,
+    tempOperator,
+    hasInput,
+    onPressNum,
+    onPressOperator,
+    onPressReset,
+  } = useCalculator();
 
   return (
     <View style={{ flex: 1, width: 300, justifyContent: "center" }}>
@@ -123,7 +86,12 @@ export default () => {
 
       {/* [AC ~ /] 초기화 버튼부터 나누기(%)까지 */}
       <View style={{ flexDirection: "row", width: "100%" }}>
-        <Button type="reset" text="AC" onPress={onPressReset} flex={3} />
+        <Button
+          type="reset"
+          text={hasInput ? "C" : "AC"}
+          onPress={onPressReset}
+          flex={3}
+        />
         <Button
           type="operator"
           text="/"
