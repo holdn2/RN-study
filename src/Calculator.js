@@ -62,7 +62,7 @@ export default () => {
   return (
     <View style={{ flex: 1, width: 300, justifyContent: "center" }}>
       {/* test용 */}
-      {__DEV__ && (
+      {__DEV__ && ( // __DEV__안에있는 부분은 개발 환경에서만 볼 수 있음.
         <>
           <Text>input: {input}</Text>
           <Text>currentOperator: {currentOperator}</Text>
