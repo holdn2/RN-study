@@ -38,6 +38,42 @@ export const getCalendarColumns = (now) => {
   //   console.log("columns 7월", columns);
 
   const filledColumns = fillEmptyColumns(columns, start, end);
-  console.log("columns 최종", columns);
+  // console.log("columns 최종", columns);
   return filledColumns;
+};
+
+/**
+ *
+ * @param day 0~6
+ * @return 일~토
+ */
+const dayTexts = ["일", "월", "화", "수", "목", "금", "토"];
+export const getDayText = (day) => {
+  // switch (day) {
+  //Ex 1.
+  // case 0:
+  //   return "일";
+  // case 1:
+  //   return "월";
+  // case 2:
+  //   return "화";
+  // case 3:
+  //   return "수";
+  // case 4:
+  //   return "목";
+  // case 5:
+  //   return "금";
+  // case 6:
+  //   return "금";
+  // default:
+  //   return "";
+  // }
+
+  //Ex 2.
+  return dayTexts[day];
+};
+
+export const getDayColor = (day) => {
+  //Ex 2.
+  return day === 0 ? "#e67639" : day === 6 ? "#5872d1" : "#2b2b2b";
 };
