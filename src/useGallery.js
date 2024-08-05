@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
@@ -5,6 +6,11 @@ import { Alert, Platform } from "react-native";
 const defaultAlbum = {
   id: 1,
   title: "기본",
+};
+
+const ASYNC_KEY = {
+  IMAGES: "images",
+  ALBUMS: "albums",
 };
 
 export const useGallery = () => {
@@ -15,18 +21,16 @@ export const useGallery = () => {
   const [bigImgModalVisible, setBigImgModalVisible] = useState(false);
   const [albumTitle, setAlbumTitle] = useState("");
   const [isDropDownOpen, setIsDropDownOpen] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      if (Platform.OS !== "web") {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-          alert("Sorry, we need camera roll permissions to make this work!");
-        }
-      }
-    })();
-  }, []);
+  const _setImages = (newImages) => {
+    setImages(newImages);
+    AsyncStorage.setItem(ASYNC_KEY.IMAGES, JSON.stringify(newImages));
+  };
+  const _setAlbums = (newAlbums) => {
+    setAlbums(newAlbums);
+    AsyncStorage.setItem(ASYNC_KEY.ALBUMS, JSON.stringify(newAlbums));
+  };
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -44,7 +48,7 @@ export const useGallery = () => {
         uri: result.assets[0].uri,
         albumId: selectedAlbum.id,
       };
-      setImages([...images, newImage]);
+      _setImages([...images, newImage]);
     }
   };
 
@@ -59,7 +63,7 @@ export const useGallery = () => {
         onPress: () => {
           //이미지 삭제
           const newImage = images.filter((image) => image.id !== imageId);
-          setImages(newImage);
+          _setImages(newImage);
         },
       },
     ]);
@@ -67,7 +71,7 @@ export const useGallery = () => {
 
   const delAllImages = (albumId) => {
     const newImage = images.filter((image) => image.albumId !== albumId);
-    setImages(newImage);
+    _setImages(newImage);
   };
 
   const openTextInputModal = () => {
@@ -75,6 +79,12 @@ export const useGallery = () => {
   };
   const closeTextInputModal = () => {
     setTextInputModalVisible(false);
+  };
+  const openBigImgModal = () => {
+    setBigImgModalVisible(true);
+  };
+  const closeBigImgModal = () => {
+    setBigImgModalVisible(false);
   };
   const openDropDown = () => {
     setIsDropDownOpen(true);
@@ -89,7 +99,7 @@ export const useGallery = () => {
       id: lastId + 1,
       title: albumTitle,
     };
-    setAlbums([...albums, newAlbum]);
+    _setAlbums([...albums, newAlbum]);
     setSelectedAlbum(newAlbum);
   };
 
@@ -107,7 +117,7 @@ export const useGallery = () => {
         text: "네",
         onPress: () => {
           const newImage = images.filter((image) => image.albumId !== albumId);
-          setImages(newImage);
+          _setImages(newImage);
         },
       },
     ]);
@@ -127,7 +137,7 @@ export const useGallery = () => {
         text: "네",
         onPress: () => {
           const newAlbums = albums.filter((album) => album.id !== albumId);
-          setAlbums(newAlbums);
+          _setAlbums(newAlbums);
           delAllImages(albumId);
           setSelectedAlbum(defaultAlbum);
         },
@@ -135,13 +145,50 @@ export const useGallery = () => {
     ]);
   };
 
-  const resetAlbumTitle = () => {
-    setAlbumTitle("");
+  const selectImage = (image) => {
+    setSelectedImage(image);
   };
 
   const filteredImages = images.filter(
     (image) => image.albumId === selectedAlbum.id
   );
+  const moveToPreviousImage = () => {
+    // filteredImages
+    const selectedImageIndex = filteredImages.findIndex(
+      (image) => image.id === selectedImage.id
+    );
+    const previousImageIdx = selectedImageIndex - 1;
+    if (previousImageIdx < 0) {
+      return;
+    }
+    // console.log("selectedImageIndex", selectedImageIndex);
+    // console.log("previousImageIndex", previousImageIdx);
+    const previousImage = filteredImages[previousImageIdx];
+    setSelectedImage(previousImage);
+  };
+
+  const moveToNextImage = () => {
+    const selectedImageIndex = filteredImages.findIndex(
+      (image) => image.id === selectedImage.id
+    );
+    const nextImageIdx = selectedImageIndex + 1;
+    if (nextImageIdx > filteredImages.length - 1 || nextImageIdx === -1) {
+      return;
+    }
+    // console.log("selectedImageIndex", selectedImageIndex);
+    // console.log("nextImageIndex", nextImageIdx);
+    const nextImage = filteredImages[nextImageIdx];
+    setSelectedImage(nextImage);
+  };
+  const showPreviousArrow =
+    filteredImages.findIndex((image) => image.id === selectedImage?.id) !== 0;
+  const showNextArrow =
+    filteredImages.findIndex((image) => image.id === selectedImage?.id) !==
+    filteredImages.length - 1;
+
+  const resetAlbumTitle = () => {
+    setAlbumTitle("");
+  };
 
   const imageWithAddButton = [
     ...filteredImages,
@@ -152,6 +199,27 @@ export const useGallery = () => {
   ];
 
   const selectedAlbumID = selectedAlbum.id;
+
+  // AsyncStorage를 이용하여 images와 albums 저장
+  const initValues = async () => {
+    //images
+    const imagesFromStorage = await AsyncStorage.getItem(ASYNC_KEY.IMAGES);
+    if (imagesFromStorage !== null) {
+      const parsed = JSON.parse(imagesFromStorage);
+      setImages(parsed);
+    }
+
+    //albums
+    const albumsFromStorage = await AsyncStorage.getItem(ASYNC_KEY.ALBUMS);
+    if (albumsFromStorage !== null) {
+      const parsed = JSON.parse(albumsFromStorage);
+      setAlbums(parsed);
+    }
+  };
+
+  useEffect(() => {
+    initValues();
+  }, []);
 
   return {
     imageWithAddButton,
@@ -173,5 +241,14 @@ export const useGallery = () => {
     setAlbums,
     delAlbum,
     delAllImgInAlbum,
+    bigImgModalVisible,
+    openBigImgModal,
+    closeBigImgModal,
+    selectedImage,
+    selectImage,
+    moveToPreviousImage,
+    moveToNextImage,
+    showPreviousArrow,
+    showNextArrow,
   };
 };

@@ -12,9 +12,7 @@ import { useGallery } from "./src/useGallery";
 import MyDropDownPicker from "./src/MyDropDownPicker";
 import TextInputModal from "./src/TextInputModal";
 import BigImgModal from "./src/BigImgModal";
-
-const width = Dimensions.get("screen").width;
-const columnSize = width / 3;
+import ImageList from "./src/ImageList";
 
 export default function App() {
   const {
@@ -37,9 +35,18 @@ export default function App() {
     selectAlbum,
     delAlbum,
     delAllImgInAlbum,
+    bigImgModalVisible,
+    openBigImgModal,
+    closeBigImgModal,
+    selectImage,
+    selectedImage,
+    moveToPreviousImage,
+    moveToNextImage,
+    showPreviousArrow,
+    showNextArrow,
   } = useGallery();
 
-  const onPressBackdrop = () => {
+  const onPressTextInputModalBackdrop = () => {
     closeTextInputModal();
   };
 
@@ -49,8 +56,24 @@ export default function App() {
   const onLongPressImage = (imageId) => {
     delImage(imageId);
   };
-  const onPressAddAlbum = () => {
+  const onPressWatchAd = () => {
     openTextInputModal();
+  };
+  const onPressAddAlbum = () => {
+    if (albums.length >= 2) {
+      Alert.alert("광고를 시청해야 앨범을 추가할 수 있습니다.", "", [
+        {
+          style: "cancel",
+          text: "닫기",
+        },
+        {
+          text: "광고 시청",
+          onPress: onPressWatchAd,
+        },
+      ]);
+    } else {
+      openTextInputModal();
+    }
   };
   const onSubmitEditing = () => {
     //1. 앨범 타이틀 추가
@@ -67,6 +90,10 @@ export default function App() {
       openDropDown();
     }
   };
+  const onPressBigImgModalBackdrop = () => {
+    closeBigImgModal();
+  };
+
   const onPressAlbum = (album) => {
     selectAlbum(album);
     closeDropDown();
@@ -78,39 +105,18 @@ export default function App() {
     delAllImgInAlbum(selectedAlbumID);
   };
 
-  const renderItem = ({ item: { id, uri }, index }) => {
-    if (id === -1) {
-      return (
-        <TouchableOpacity
-          onPress={onPressOpenGallery}
-          style={{
-            width: columnSize,
-            height: columnSize,
-            backgroundColor: "lightgrey",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontWeight: "200",
-              fontSize: 45,
-            }}
-          >
-            +
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-    return (
-      <TouchableOpacity onLongPress={() => onLongPressImage(id)}>
-        <Image
-          source={{ uri }}
-          style={{ width: columnSize, height: columnSize }}
-        />
-      </TouchableOpacity>
-    );
+  const onPressImage = (image) => {
+    // 이미지 클릭시 크게 모달로 띄우기
+    selectImage(image);
+    openBigImgModal();
   };
+  const onPressArrowLeft = () => {
+    moveToPreviousImage();
+  };
+  const onPressArrowRight = () => {
+    moveToNextImage();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 앨범 DropDown, 앨범 추가 버튼 */}
@@ -126,20 +132,28 @@ export default function App() {
       />
       {/* 앨범을 추가하는 TextInputModal */}
       <TextInputModal
-        textInputModalVisible={textInputModalVisible}
+        modalVisible={textInputModalVisible}
         albumTitle={albumTitle}
         setAlbumTitle={setAlbumTitle}
         onSubmitEditing={onSubmitEditing}
-        onPressBackdrop={onPressBackdrop}
+        onPressBackdrop={onPressTextInputModalBackdrop}
       />
       {/* 이미지를 크게 보는 Modal */}
-      <BigImgModal />
+      <BigImgModal
+        modalVisible={bigImgModalVisible}
+        onPressBackdrop={onPressBigImgModalBackdrop}
+        selectedImage={selectedImage}
+        onPressArrowLeft={onPressArrowLeft}
+        onPressArrowRight={onPressArrowRight}
+        showPreviousArrow={showPreviousArrow}
+        showNextArrow={showNextArrow}
+      />
       {/* 이미지 리스트 */}
-      <FlatList
-        data={imageWithAddButton}
-        renderItem={renderItem}
-        numColumns={3}
-        style={{ zIndex: -1 }}
+      <ImageList
+        imageWithAddButton={imageWithAddButton}
+        onPressOpenGallery={onPressOpenGallery}
+        onPressImage={onPressImage}
+        onLongPressImage={onLongPressImage}
       />
     </SafeAreaView>
   );

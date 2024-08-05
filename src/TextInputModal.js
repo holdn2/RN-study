@@ -8,22 +8,18 @@ import {
 } from "react-native";
 
 export default ({
-  textInputModalVisible,
+  modalVisible,
   albumTitle,
   setAlbumTitle,
   onSubmitEditing,
   onPressBackdrop,
 }) => {
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={textInputModalVisible}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
+      <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <Pressable onPress={onPressBackdrop} style={{ flex: 1 }}>
           <SafeAreaView
             style={{
@@ -39,6 +35,7 @@ export default ({
                 padding: 10,
                 borderWidth: 0.5,
                 borderColor: "lightgrey",
+                backgroundColor: "white",
               }}
               value={albumTitle}
               onChangeText={setAlbumTitle}
@@ -47,7 +44,7 @@ export default ({
             />
           </SafeAreaView>
         </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 };
