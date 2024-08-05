@@ -11,6 +11,7 @@ import {
 import { useGallery } from "./src/useGallery";
 import MyDropDownPicker from "./src/MyDropDownPicker";
 import TextInputModal from "./src/TextInputModal";
+import BigImgModal from "./src/BigImgModal";
 
 const width = Dimensions.get("screen").width;
 const columnSize = width / 3;
@@ -21,9 +22,10 @@ export default function App() {
     pickImage,
     delImage,
     selectedAlbum,
-    modalVisible,
-    openModal,
-    closeModal,
+    selectedAlbumID,
+    textInputModalVisible,
+    openTextInputModal,
+    closeTextInputModal,
     albumTitle,
     setAlbumTitle,
     addAlbum,
@@ -31,10 +33,14 @@ export default function App() {
     isDropDownOpen,
     openDropDown,
     closeDropDown,
+    albums,
+    selectAlbum,
+    delAlbum,
+    delAllImgInAlbum,
   } = useGallery();
 
   const onPressBackdrop = () => {
-    closeModal();
+    closeTextInputModal();
   };
 
   const onPressOpenGallery = () => {
@@ -44,14 +50,14 @@ export default function App() {
     delImage(imageId);
   };
   const onPressAddAlbum = () => {
-    openModal();
+    openTextInputModal();
   };
   const onSubmitEditing = () => {
     //1. 앨범 타이틀 추가
     if (!albumTitle) return;
     addAlbum();
     //2. modal 닫기 & TextInput의 value 초기화
-    closeModal();
+    closeTextInputModal();
     resetAlbumTitle();
   };
   const onPressHeader = () => {
@@ -60,6 +66,16 @@ export default function App() {
     } else {
       openDropDown();
     }
+  };
+  const onPressAlbum = (album) => {
+    selectAlbum(album);
+    closeDropDown();
+  };
+  const onLongPressAlbum = (albumId) => {
+    delAlbum(albumId);
+  };
+  const onPressDelAll = (selectedAlbumID) => {
+    delAllImgInAlbum(selectedAlbumID);
   };
 
   const renderItem = ({ item: { id, uri }, index }) => {
@@ -101,17 +117,23 @@ export default function App() {
       <MyDropDownPicker
         isDropDownOpen={isDropDownOpen}
         onPressHeader={onPressHeader}
-        selectedAlbumTitle={selectedAlbum.title}
+        selectedAlbum={selectedAlbum}
         onPressAddAlbum={onPressAddAlbum}
+        albums={albums}
+        onPressAlbum={onPressAlbum}
+        onLongPressAlbum={onLongPressAlbum}
+        delAllImages={onPressDelAll}
       />
       {/* 앨범을 추가하는 TextInputModal */}
       <TextInputModal
-        modalVisible={modalVisible}
+        textInputModalVisible={textInputModalVisible}
         albumTitle={albumTitle}
         setAlbumTitle={setAlbumTitle}
         onSubmitEditing={onSubmitEditing}
         onPressBackdrop={onPressBackdrop}
       />
+      {/* 이미지를 크게 보는 Modal */}
+      <BigImgModal />
       {/* 이미지 리스트 */}
       <FlatList
         data={imageWithAddButton}

@@ -5,18 +5,21 @@ import {
   Pressable,
   SafeAreaView,
   TextInput,
-  View,
 } from "react-native";
 
 export default ({
-  modalVisible,
+  textInputModalVisible,
   albumTitle,
   setAlbumTitle,
   onSubmitEditing,
   onPressBackdrop,
 }) => {
   return (
-    <Modal animationType="slide" transparent={true} visible={modalVisible}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={textInputModalVisible}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}

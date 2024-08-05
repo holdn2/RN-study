@@ -11,7 +11,8 @@ export const useGallery = () => {
   const [images, setImages] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(defaultAlbum);
   const [albums, setAlbums] = useState([defaultAlbum]);
-  const [modalVisible, setmodalVisible] = useState(false);
+  const [textInputModalVisible, setTextInputModalVisible] = useState(false);
+  const [bigImgModalVisible, setBigImgModalVisible] = useState(false);
   const [albumTitle, setAlbumTitle] = useState("");
   const [isDropDownOpen, setIsDropDownOpen] = useState("");
 
@@ -41,6 +42,7 @@ export const useGallery = () => {
       const newImage = {
         id: lastId + 1,
         uri: result.assets[0].uri,
+        albumId: selectedAlbum.id,
       };
       setImages([...images, newImage]);
     }
@@ -63,11 +65,16 @@ export const useGallery = () => {
     ]);
   };
 
-  const openModal = () => {
-    setmodalVisible(true);
+  const delAllImages = (albumId) => {
+    const newImage = images.filter((image) => image.albumId !== albumId);
+    setImages(newImage);
   };
-  const closeModal = () => {
-    setmodalVisible(false);
+
+  const openTextInputModal = () => {
+    setTextInputModalVisible(true);
+  };
+  const closeTextInputModal = () => {
+    setTextInputModalVisible(false);
   };
   const openDropDown = () => {
     setIsDropDownOpen(true);
@@ -83,28 +90,77 @@ export const useGallery = () => {
       title: albumTitle,
     };
     setAlbums([...albums, newAlbum]);
+    setSelectedAlbum(newAlbum);
+  };
+
+  const selectAlbum = (album) => {
+    setSelectedAlbum(album);
+  };
+
+  const delAllImgInAlbum = (albumId) => {
+    Alert.alert("이 앨범의 모든 사진을 삭제하시겠습니까?", "", [
+      {
+        style: "cancel",
+        text: "아니요",
+      },
+      {
+        text: "네",
+        onPress: () => {
+          const newImage = images.filter((image) => image.albumId !== albumId);
+          setImages(newImage);
+        },
+      },
+    ]);
+  };
+
+  const delAlbum = (albumId) => {
+    if (albumId === defaultAlbum.id) {
+      Alert.alert("기본 앨범은 삭제할 수 없습니다.");
+      return;
+    }
+    Alert.alert("앨범을 삭제하시겠습니까?", "", [
+      {
+        style: "cancel",
+        text: "아니요",
+      },
+      {
+        text: "네",
+        onPress: () => {
+          const newAlbums = albums.filter((album) => album.id !== albumId);
+          setAlbums(newAlbums);
+          delAllImages(albumId);
+          setSelectedAlbum(defaultAlbum);
+        },
+      },
+    ]);
   };
 
   const resetAlbumTitle = () => {
     setAlbumTitle("");
   };
 
+  const filteredImages = images.filter(
+    (image) => image.albumId === selectedAlbum.id
+  );
+
   const imageWithAddButton = [
-    ...images,
+    ...filteredImages,
     {
       id: -1,
       uri: "",
     },
   ];
 
+  const selectedAlbumID = selectedAlbum.id;
+
   return {
     imageWithAddButton,
     pickImage,
     delImage,
     selectedAlbum,
-    modalVisible,
-    openModal,
-    closeModal,
+    textInputModalVisible,
+    openTextInputModal,
+    closeTextInputModal,
     albumTitle,
     setAlbumTitle,
     addAlbum,
@@ -112,5 +168,10 @@ export const useGallery = () => {
     isDropDownOpen,
     openDropDown,
     closeDropDown,
+    albums,
+    selectAlbum,
+    setAlbums,
+    delAlbum,
+    delAllImgInAlbum,
   };
 };
