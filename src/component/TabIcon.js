@@ -8,14 +8,14 @@ export const TabIcon = (props) => {
     return (
       <View>
         <Badge fontSize={10}>
-          <Icon name={props.iconName} size={20} color={"black"} />
+          <Icon name={props.iconName} size={20} color={props.iconColor} />
         </Badge>
       </View>
     );
   }
   return (
     <View>
-      <Icon name={props.iconName} size={20} color={"black"} />
+      <Icon name={props.iconName} size={20} color={props.iconColor} />
     </View>
   );
 };
