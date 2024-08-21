@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, useWindowDimensions, View } from "react-native";
 import { Header } from "../component/Header/Header";
 import { useNavigation } from "@react-navigation/native";
 import { SingleLineInput } from "../component/SingleLineInput";
@@ -12,10 +12,12 @@ import { atomLinkList } from "../states/atomLinkList";
 import { getOpenGraphData } from "../utils/OpenGraphTagUtils";
 import { RemoteImage } from "../component/RemoteImages";
 import { getClipboardString } from "../utils/ClipboardUtils";
+import { Icon } from "../component/Icons";
 
 export const AddLinkScreen = () => {
   const [url, setUrl] = useState("");
   const [metaData, setMetaData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const updateList = useSetRecoilState(atomLinkList);
   const navigation = useNavigation();
   const safeAreaInset = useSafeAreaInsets();
@@ -32,7 +34,7 @@ export const AddLinkScreen = () => {
     updateList((prevState) => {
       const list = [
         {
-          title: metaData.title,
+          title: metaData.title || "No Title",
           image: metaData.image,
           link: url,
           createAt: new Date().toISOString(),
@@ -47,9 +49,11 @@ export const AddLinkScreen = () => {
   }, [url, updateList]);
 
   const onSubmitEditing = useCallback(async () => {
+    setLoading(true);
     const result = await getOpenGraphData(url);
 
     setMetaData(result);
+    setLoading(false);
   }, [url]);
 
   const onGetClipboardString = useCallback(async () => {
@@ -81,41 +85,88 @@ export const AddLinkScreen = () => {
       <View
         style={{
           flex: 1,
-          alignItems: "center",
           justifyContent: "flex-start",
           paddingTop: 32,
           paddingHorizontal: 24,
         }}
       >
-        <SingleLineInput
-          value={url}
-          onChangeText={setUrl}
-          placeholder="https://example.com"
-          onSubmitEditing={onSubmitEditing}
-        />
-        {metaData !== null && (
+        <View>
+          <SingleLineInput
+            value={url}
+            onChangeText={setUrl}
+            placeholder="https://example.com"
+            onSubmitEditing={onSubmitEditing}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              right: 0,
+              borderWidth: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              onPress={() => {
+                setUrl("");
+                setMetaData(null);
+              }}
+            >
+              <Icon name={"close"} color="black" size={20} />
+            </Button>
+          </View>
+        </View>
+
+        {loading ? (
           <>
             <Spacer space={20} />
             <View
               style={{ borderWidth: 1, borderRadius: 4, borderColor: "gray" }}
             >
-              <RemoteImage
-                url={metaData.image}
-                width={width - 48}
-                height={(width - 48) * 0.5}
-              />
-              <View style={{ paddingHorizontal: 12, paddingVertical: 8 }}>
-                <Spacer space={10} />
-                <Typography fontSize={20} color={"black"}>
-                  {metaData.title}
-                </Typography>
-                <Spacer space={4} />
-                <Typography fontSize={16} color={"gray"}>
-                  {metaData.description}
-                </Typography>
+              <Spacer space={(width - 48) * 0.5} />
+              <Spacer space={50} />
+              <View
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ActivityIndicator />
               </View>
             </View>
           </>
+        ) : (
+          metaData !== null && (
+            <>
+              <Spacer space={20} />
+              <View
+                style={{ borderWidth: 1, borderRadius: 4, borderColor: "gray" }}
+              >
+                <RemoteImage
+                  url={metaData.image}
+                  width={width - 48}
+                  height={(width - 48) * 0.5}
+                />
+                <View style={{ paddingHorizontal: 12, paddingVertical: 8 }}>
+                  <Spacer space={10} />
+                  <Typography fontSize={20} color={"black"}>
+                    {metaData.title}
+                  </Typography>
+                  <Spacer space={4} />
+                  <Typography fontSize={16} color={"gray"}>
+                    {metaData.description}
+                  </Typography>
+                </View>
+              </View>
+            </>
+          )
         )}
       </View>
       <Button onPress={onPressSave}>

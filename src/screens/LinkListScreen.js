@@ -1,5 +1,5 @@
-import React, { useCallback } from "react";
-import { FlatList, View } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { FlatList, SectionList, View } from "react-native";
 import { Header } from "../component/Header/Header";
 import { Button } from "../component/Button";
 import { Typography } from "../component/Typography";
@@ -21,6 +21,32 @@ export const LinkListScreen = () => {
   const onPressAddButton = useCallback(() => {
     navigation.navigate("AddLink");
   }, []);
+  const sectionData = useMemo(() => {
+    const dateList = {};
+
+    const makeDateString = (createAt) => {
+      const dateItem = new Date(createAt);
+      return `${dateItem.getFullYear()}.${dateItem.getMonth()}.${dateItem.getDay()} ${dateItem.getHours()}:${dateItem.getMinutes()}`;
+    };
+
+    if (!data.list) {
+      return [];
+    }
+    data.list.forEach((item) => {
+      const keyName = makeDateString(item.createAt);
+      if (!dateList[keyName]) {
+        dateList[keyName] = [item];
+      } else {
+        dateList[keyName].push(item);
+      }
+    });
+    return Object.keys(dateList).map((item) => {
+      return {
+        title: item,
+        data: dateList[item],
+      };
+    });
+  }, [data.list]);
   return (
     <View style={{ flex: 1 }}>
       <Header>
@@ -28,10 +54,26 @@ export const LinkListScreen = () => {
           <Header.Title title="LINK LIST" />
         </Header.Group>
       </Header>
-      <FlatList
+
+      <SectionList
         style={{ flex: 1 }}
-        data={data.list}
-        keyExtractor={(item, index) => item.id || index.toString()}
+        sections={sectionData}
+        renderSectionHeader={({ section }) => {
+          console.log(section);
+          return (
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                backgroundColor: "white",
+              }}
+            >
+              <Typography color="gray" fontSize={12}>
+                {section.title}
+              </Typography>
+            </View>
+          );
+        }}
         renderItem={({ item }) => {
           return (
             <Button
@@ -39,7 +81,7 @@ export const LinkListScreen = () => {
               paddingHorizontal={24}
               paddingVertical={24}
             >
-              <View>
+              <View style={{ height: 70, justifyContent: "center" }}>
                 <Typography fontSize={20}>
                   {item.link || "No Link Provided"}
                 </Typography>
